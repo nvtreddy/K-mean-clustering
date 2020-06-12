@@ -1,0 +1,106 @@
+% reading file Combinedmodeldata 
+X = Combinedmodeldata;
+K = 2;
+d=testdata;
+t=testoutput;
+max_iterations = 1;
+centroids = initCentroids(X, K);
+for i=1:max_iterations
+ indices = getClosestCentroids(X, centroids);
+ centroids = computeCentroids(X, indices, K);
+ [cluster1,cluster2]=computeclusters(X,centroids,K);
+op=testing(cluster1,cluster2,d);
+[c,cm]=computeconfusionmatrix(op,t);
+end
+hold on
+scatter(cluster1(:,1),cluster1(:,2),cluster1(:,3),cluster1(:,4),'b','o','Line
+Width',5)
+scatter(cluster2(:,1),cluster2(:,2),cluster2(:,3),cluster2(:,4),'r','+','Line
+Width',5)
+scatter(centroids(1,1),centroids(1,2),centroids(1,3),centroids(1,4),'g','*','
+LineWidth',20)
+scatter(centroids(2,1),centroids(2,2),centroids(2,3),centroids(2,4),'g','*','
+LineWidth',20)
+legend('cluster1','cluster2');
+hold off;
+function centroids = initCentroids(X, K)
+ centroids = zeros(K,size(X,2));
+ randidx = randperm(size(X,1));
+ centroids = X(randidx(1:K), :);
+end
+ function indices = getClosestCentroids(X, centroids)
+ K = size(centroids, 1);
+ indices = zeros(size(X,1), 1);
+ m = size(X,1);
+ for i=1:m
+ k = 1;
+ min_dist = sum((X(i,:) - centroids(1,:)) .^ 2);
+ for j=2:K
+ dist = sum((X(i,:) - centroids(j,:)) .^ 2);
+ if(dist < min_dist)
+ min_dist = dist;
+ k = j;
+ end
+ end
+ indices(i) = k;
+ end
+ end
+function centroids = computeCentroids(X, idx, K)
+ [m n] = size(X);
+ centroids = zeros(K, n);
+ 
+ for i=1:K
+ xi = X(idx==i,:);
+ ck = size(xi,1);
+
+ centroids(i, :) = (1/ck) * [sum(xi(:,1)) sum(xi(:,2)) sum(xi(:,3))
+sum(xi(:,4)) sum(xi(:,5)) sum(xi(:,6)) sum(xi(:,7)) sum(xi(:,8)) sum(xi(:,9))
+sum(xi(:,10)) sum(xi(:,11)) sum(xi(:,12))];
+ end
+end
+function [cluster1, cluster2] = computeclusters(X, centroids,K)
+m = size(X,1);
+l=1;
+q=1;
+
+for i=1:m
+
+ min_dist = sum((X(i,:) - centroids(1,:)) .^ 2);
+ for j=2:K
+ dist = sum((X(i,:) - centroids(j,:)) .^ 2);
+ if(dist < min_dist)
+ cluster1(l,:)=X(i,:);
+ l=l+1;
+
+ end
+ if(dist>min_dist)
+ cluster2(q,:)=X(i,:);
+ q=q+1;
+ end
+ end
+end
+end
+function op = testing(cluster1,cluster2,d)
+a=size(d,1);
+for i=1:a
+ min_dist = sum((d(i,:) - cluster1(1,:)) .^ 2);
+
+ dist = sum((d(i,:) - cluster2(1,:)) .^ 2);
+ if(dist < min_dist)
+
+ op(i,1)=1;
+ end
+ if(dist>min_dist)
+
+ op(i,1)=0;
+ end
+end
+end
+function [cm,c] = computeconfusionmatrix(op,t);
+[cm,c]=confusionmat(t,op')
+error = (cm(1,2)+cm(2,1))/(cm(1,1)+cm(1,2)+cm(2,1)+cm(2,2))
+accuracy = (cm(1,1)+cm(2,2))/(cm(1,1)+cm(1,2)+cm(2,1)+cm(2,2))*100
+sensitivity = cm(1,1)/(cm(1,1)+cm(1,2))
+precision = cm(1,1)/(cm(1,1)+cm(2,1))
+specificity = cm(2,2)/(cm(2,1)+cm(2,2))
+End
